@@ -126,6 +126,17 @@ func (h *Hand) _score() int {
 	return 0
 }
 
+func (h *Hand) checkDup(h2 *Hand) *Card {
+	for _, card := range h.cards {
+		for _, card2 := range h2.cards {
+			if card.suit == card2.suit && card.rank == card2.rank {
+				return card
+			}
+		}
+	}
+	return nil
+}
+
 func parseSuit(c *Context) (suit int, err error) {
 	str, err := c.cur()
 	if err != nil {
@@ -214,12 +225,18 @@ func parseEnd(c *Context) (ignore int, err error) {
 }
 
 func compareHands(h1 *Hand, h2 *Hand) (result int, err error) {
+	if c := h1.checkDup(h2); c != nil {
+		return INVALID, errors.New("duplicate card found")
+	}
 	s1 := h1.score()
 	s2 := h2.score()
 	if s1 > s2 {
 		return FIRST_WIN, nil
 	}
-	return SECOND_WIN, nil
+	if s2 > s1 {
+		return SECOND_WIN, nil
+	}
+	return FIRST_WIN, nil
 }
 
 func ParseLine(line string) (int, error) {

@@ -9,18 +9,29 @@ import (
 func TestParse(t *testing.T) {
 	result, _ := ParseLine("a b")
 	assert.Equal(t, INVALID, result)
+
 	result, err := ParseLine("HSS7CAC2D7;D9D5C6S5DA")
 	assert.Equal(t, INVALID, result)
+	assert.Equal(t, "bad rank:S", err.Error())
+
 	result, err = ParseLine("H9S7CAC2D79D5C6S5DA")
 	assert.Equal(t, INVALID, result)
+	assert.Equal(t, "; expected but 9 found", err.Error())
+
 	result, err = ParseLine("H9S7CAC2D7;D9D5C6S5DA1")
 	assert.Equal(t, INVALID, result)
+	assert.Equal(t, "eol expected but 1 found", err.Error())
+
+	result, err = ParseLine("H9S7CAC2D7;H9D5C6S5DA")
+	assert.Equal(t, INVALID, result)
+	fmt.Println(err)
+	assert.Equal(t, "duplicate card found", err.Error())
 
 	result, err = ParseLine("H9S7CAC2D7;D9D5C6S5DA")
 	if err != nil {
 		fmt.Println(err)
 	}
-	assert.Equal(t, SECOND_WIN, result)
+	assert.Equal(t, FIRST_WIN, result)
 }
 
 func handScore(hand string) int {
