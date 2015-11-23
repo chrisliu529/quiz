@@ -30,8 +30,13 @@ func handScore(hand string) int {
 }
 
 func TestScore(t *testing.T) {
-	assert.Equal(t, 3, handScore("DJSQSKD5C8"))
-	assert.Equal(t, 10, handScore("D2SQSKD5C3"))
-	assert.Equal(t, 0, handScore("DAS2S3D4CA"))
-	assert.Equal(t, 3, handScore("D5S6S10D9C3"))
+	cases := map[string]int{
+		"DJSQSKD5C8":  3,
+		"D2SQSKD5C3":  10,
+		"DAS2S3D4CA":  0,
+		"D5S6S10D9C3": 3,
+	}
+	for hand, score := range cases {
+		assert.Equal(t, score, handScore(hand))
+	}
 }
