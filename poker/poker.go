@@ -8,12 +8,6 @@ import (
 	"strings"
 )
 
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
 type Results struct {
 	first_win  int
 	second_win int
@@ -40,6 +34,11 @@ const (
 type Context struct {
 	pos        int
 	expression string
+}
+
+func NewContext(line string) *Context {
+	s := strings.TrimSpace(line)
+	return &Context{pos: 0, expression: s}
 }
 
 func (c *Context) cur() (str string, err error) {
@@ -73,8 +72,13 @@ var str2rank map[string]int = map[string]int{
 }
 
 type Hand struct {
-	cards []*Card
-	n     int
+	cards   []*Card
+	n       int
+	__score int
+}
+
+func NewHand() *Hand {
+	return &Hand{cards: make([]*Card, N_CARDS), n: 0, __score: -1}
 }
 
 func (h *Hand) addCard(c *Card) error {
@@ -86,6 +90,42 @@ func (h *Hand) addCard(c *Card) error {
 	return nil
 }
 
+func (h *Hand) sum() int {
+	s := 0
+	for _, card := range h.cards {
+		s += card.rank
+	}
+	return s
+}
+
+func (h *Hand) score() int {
+	if h.__score < 0 {
+		h.__score = h._score()
+	}
+	return h.__score
+}
+
+func (h *Hand) _score() int {
+	s := h.sum()
+	for i := 0; i < h.n-1; i++ {
+		r := h.cards[i].rank
+		for j := i + 1; j < h.n; j++ {
+			ri := r
+			r += h.cards[j].rank
+			t := s - r
+			if t%10 == 0 {
+				r2 := r - 10
+				if r2 > 0 {
+					return r2
+				}
+				return r
+			}
+			r = ri
+		}
+	}
+	return 0
+}
+
 func parseSuit(c *Context) (suit int, err error) {
 	str, err := c.cur()
 	if err != nil {
@@ -93,7 +133,6 @@ func parseSuit(c *Context) (suit int, err error) {
 	}
 	if suit, found := str2suit[str]; found {
 		c.forward()
-		fmt.Println("got suit:", suit)
 		return suit, nil
 	}
 	return suit, errors.New("bad suit:" + str)
@@ -141,7 +180,7 @@ Error:
 }
 
 func parseHand(c *Context) (*Hand, error) {
-	h := &Hand{cards: make([]*Card, N_CARDS), n: 0}
+	h := NewHand()
 	for i := 0; i < N_CARDS; i++ {
 		card, err := parseCard(c)
 		if err != nil {
@@ -166,16 +205,25 @@ func parseSep(c *Context) (ignore int, err error) {
 	return ignore, errors.New("; expected but " + s + " found")
 }
 
+func parseEnd(c *Context) (ignore int, err error) {
+	s, err := c.cur()
+	if err == nil {
+		return ignore, errors.New("eol expected but " + s + " found")
+	}
+	return ignore, nil
+}
+
 func compareHands(h1 *Hand, h2 *Hand) (result int, err error) {
-	if h1 == h2 {
+	s1 := h1.score()
+	s2 := h2.score()
+	if s1 > s2 {
 		return FIRST_WIN, nil
 	}
 	return SECOND_WIN, nil
 }
 
 func ParseLine(line string) (int, error) {
-	s := strings.TrimSpace(line)
-	c := &Context{pos: 0, expression: s}
+	c := NewContext(line)
 	h1, err := parseHand(c)
 	if err != nil {
 		return INVALID, err
@@ -187,7 +235,16 @@ func ParseLine(line string) (int, error) {
 	if err != nil {
 		return INVALID, err
 	}
+	if _, err := parseEnd(c); err != nil {
+		return INVALID, err
+	}
 	return compareHands(h1, h2)
+}
+
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
 }
 
 func analyzeRecords(filename string) *Results {
