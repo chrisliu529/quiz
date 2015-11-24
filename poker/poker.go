@@ -57,6 +57,10 @@ type Card struct {
 	rank int
 }
 
+func (card *Card) val() int {
+	return card.rank*10 + card.suit
+}
+
 var str2suit map[string]int = map[string]int{
 	"S": SPADE,
 	"H": HEART,
@@ -96,6 +100,17 @@ func (h *Hand) sum() int {
 		s += card.rank
 	}
 	return s
+}
+
+func (h *Hand) max() int {
+	res := 0
+	for _, card := range h.cards {
+		v := card.val()
+		if v > res {
+			res = v
+		}
+	}
+	return res
 }
 
 func (h *Hand) score() int {
@@ -236,7 +251,12 @@ func compareHands(h1 *Hand, h2 *Hand) (result int, err error) {
 	if s2 > s1 {
 		return SECOND_WIN, nil
 	}
-	return FIRST_WIN, nil
+	m1 := h1.max()
+	m2 := h2.max()
+	if m1 > m2 {
+		return FIRST_WIN, nil
+	}
+	return SECOND_WIN, nil
 }
 
 func ParseLine(line string) (int, error) {
