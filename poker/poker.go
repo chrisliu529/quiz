@@ -91,6 +91,10 @@ func (card *Card) val() int {
 	return rank_val2(card.rank)*10 + card.suit
 }
 
+func (card *Card) eql(card2 *Card) bool {
+	return card.suit == card2.suit && card.rank == card2.rank
+}
+
 var str2suit map[string]int = map[string]int{
 	"S": SPADE,
 	"H": HEART,
@@ -169,7 +173,7 @@ func (h *Hand) checkOwnDup() *Card {
 		c := h.cards[i]
 		for j := i + 1; j < h.n; j++ {
 			c2 := h.cards[j]
-			if c.suit == c2.suit && c.rank == c2.rank {
+			if c.eql(c2) {
 				return c
 			}
 		}
@@ -186,7 +190,7 @@ func (h *Hand) checkDup(h2 *Hand) *Card {
 	}
 	for _, card := range h.cards {
 		for _, card2 := range h2.cards {
-			if card.suit == card2.suit && card.rank == card2.rank {
+			if card.eql(card2) {
 				return card
 			}
 		}
