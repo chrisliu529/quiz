@@ -54,18 +54,7 @@ func (c *Context) forward() {
 
 type Card struct {
 	suit int
-	rank int
-}
-
-func (card *Card) val() int {
-	return card.rank*10 + card.suit
-}
-
-var str2suit map[string]int = map[string]int{
-	"S": SPADE,
-	"H": HEART,
-	"C": CLUB,
-	"D": DIAMOND,
+	rank string
 }
 
 var str2rank map[string]int = map[string]int{
@@ -73,6 +62,40 @@ var str2rank map[string]int = map[string]int{
 	"J": 10,
 	"Q": 10,
 	"K": 10,
+}
+
+func rank_val(rank string) int {
+	if i, found := str2rank[rank]; found {
+		return i
+	}
+	i, _ := strconv.Atoi(rank)
+	return i
+}
+
+var str2rank2 map[string]int = map[string]int{
+	"A": 1,
+	"J": 11,
+	"Q": 12,
+	"K": 13,
+}
+
+func rank_val2(rank string) int {
+	if i, found := str2rank2[rank]; found {
+		return i
+	}
+	i, _ := strconv.Atoi(rank)
+	return i
+}
+
+func (card *Card) val() int {
+	return rank_val2(card.rank)*10 + card.suit
+}
+
+var str2suit map[string]int = map[string]int{
+	"S": SPADE,
+	"H": HEART,
+	"C": CLUB,
+	"D": DIAMOND,
 }
 
 type Hand struct {
@@ -97,7 +120,7 @@ func (h *Hand) addCard(c *Card) error {
 func (h *Hand) sum() int {
 	s := 0
 	for _, card := range h.cards {
-		s += card.rank
+		s += rank_val(card.rank)
 	}
 	return s
 }
@@ -123,10 +146,10 @@ func (h *Hand) score() int {
 func (h *Hand) _score() int {
 	s := h.sum()
 	for i := 0; i < h.n-1; i++ {
-		r := h.cards[i].rank
+		r := rank_val(h.cards[i].rank)
 		for j := i + 1; j < h.n; j++ {
 			ri := r
-			r += h.cards[j].rank
+			r += rank_val(h.cards[j].rank)
 			t := s - r
 			if t%10 == 0 {
 				r2 := r - 10
@@ -183,34 +206,35 @@ func parseSuit(c *Context) (suit int, err error) {
 	return suit, errors.New("bad suit:" + str)
 }
 
-func parseRank(c *Context) (rank int, err error) {
+func parseRank(c *Context) (rank string, err error) {
 	str, err := c.cur()
 	if err != nil {
 		return rank, err
 	}
-	if str == "1" {
-		c.forward()
-		str2, err := c.cur()
-		if err != nil {
-			return rank, err
-		}
-		if str2 == "0" {
+	if i, err := strconv.Atoi(str); err == nil {
+		if i == 1 {
 			c.forward()
-			return 10, nil
+			str2, err := c.cur()
+			if err != nil {
+				return rank, err
+			}
+			if str2 == "0" {
+				c.forward()
+				return "10", nil
+			}
+			return rank, errors.New("bad rank: 1" + str2)
 		}
-		return 0, errors.New("bad rank: 1" + str2)
-	} else if i, err := strconv.Atoi(str); err == nil {
 		c.forward()
-		return i, nil
-	} else if i, found := str2rank[str]; found {
+		return str, nil
+	} else if _, found := str2rank[str]; found {
 		c.forward()
-		return i, nil
+		return str, nil
 	}
 	return rank, errors.New("bad rank:" + str)
 }
 
 func parseCard(c *Context) (card *Card, err error) {
-	var r int
+	var r string
 	s, err := parseSuit(c)
 	if err != nil {
 		goto Error

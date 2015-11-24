@@ -1,7 +1,6 @@
 package main
 
 import (
-	//	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -49,6 +48,15 @@ func TestParse(t *testing.T) {
 
 	result, err = ParseLine("C4C9H4H7CK;C3H6D3S9D8")
 	assert.Equal(t, SECOND_WIN, result)
+
+	result, err = ParseLine("DQSJD8C4DA;H3C9H7D6S2")
+	assert.Equal(t, FIRST_WIN, result)
+
+	result, err = ParseLine("DQSJD8C4DA;H3C10H7D9S2")
+	assert.Equal(t, SECOND_WIN, result)
+
+	result, err = ParseLine("H5SKDQS5HJ;H10SJCQHKS10")
+	assert.Equal(t, FIRST_WIN, result)
 }
 
 func handScore(hand string) int {
@@ -59,13 +67,27 @@ func handScore(hand string) int {
 
 func TestScore(t *testing.T) {
 	cases := map[string]int{
-		"DJSQSKD5C8":    3,
-		"D2SQSKD5C3":    10,
-		"DAS2S3D4CA":    0,
-		"D5S6S10D9C3":   3,
-		"D10S10C10DKCQ": 10,
+		"DJSQSKD5C8":     3,
+		"D2SQSKD5C3":     10,
+		"DAS2S3D4CA":     0,
+		"D5S6S10D9C3":    3,
+		"D10S10C10DKCQ":  10,
+		"D10S10H10DAC10": 1,
+		"H5SKDQS5HJ":     10,
+		"H10SJCQHKS10":   10,
 	}
 	for hand, score := range cases {
 		assert.Equal(t, score, handScore(hand))
 	}
+}
+
+func cardVal(card string) int {
+	c := NewContext(card)
+	ci, _ := parseCard(c)
+	return ci.val()
+}
+
+func TestCard(t *testing.T) {
+	assert.True(t, cardVal("SK") > cardVal("HK"))
+	assert.True(t, cardVal("DK") > cardVal("SQ"))
 }
