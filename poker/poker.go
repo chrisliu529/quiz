@@ -182,11 +182,10 @@ func (h *Hand) checkOwnDup() *Card {
 }
 
 func (h *Hand) checkDup(h2 *Hand) *Card {
-	if card := h.checkOwnDup(); card != nil {
-		return card
-	}
-	if card := h2.checkOwnDup(); card != nil {
-		return card
+	for _, ih := range []*Hand{h, h2} {
+		if card := ih.checkOwnDup(); card != nil {
+			return card
+		}
 	}
 	for _, card := range h.cards {
 		for _, card2 := range h2.cards {
