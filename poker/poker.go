@@ -45,7 +45,7 @@ func (c *Context) cur() (str string, err error) {
 	if c.pos < len(c.expression) {
 		return string(c.expression[c.pos]), nil
 	}
-	return str, errors.New("line exhuasted")
+	return str, errors.New("line exhausted")
 }
 
 func (c *Context) forward() {
@@ -141,7 +141,26 @@ func (h *Hand) _score() int {
 	return 0
 }
 
+func (h *Hand) checkOwnDup() *Card {
+	for i := 0; i < h.n-1; i++ {
+		c := h.cards[i]
+		for j := i + 1; j < h.n; j++ {
+			c2 := h.cards[j]
+			if c.suit == c2.suit && c.rank == c2.rank {
+				return c
+			}
+		}
+	}
+	return nil
+}
+
 func (h *Hand) checkDup(h2 *Hand) *Card {
+	if card := h.checkOwnDup(); card != nil {
+		return card
+	}
+	if card := h2.checkOwnDup(); card != nil {
+		return card
+	}
 	for _, card := range h.cards {
 		for _, card2 := range h2.cards {
 			if card.suit == card2.suit && card.rank == card2.rank {
