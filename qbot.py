@@ -17,11 +17,11 @@ while True:
         r = ops[c-1](a, b)
         if r <= 5:
             continue
-        print '\n%s + %s' % (a, b)
     else:
         a = random.randint(1, 19)
         b = random.randint(1, 19)
         r = ops[c-1](a, b)
-        print '\n%s - %s' % (a, b)
+
+    print '\n%s %s %s' % (a, ops_str[c-1], b)
     raw_input()
     print '\b%s %s %s = %s' % (a, ops_str[c-1], b, r)
