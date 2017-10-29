@@ -22,8 +22,6 @@ while True:
         a = random.randint(1, 19)
         b = random.randint(1, 19)
         r = ops[c-1](a, b)
-        if r < 0:
-            continue
         print '\n%s - %s' % (a, b)
     raw_input()
     print '\b%s %s %s = %s' % (a, ops_str[c-1], b, r)
