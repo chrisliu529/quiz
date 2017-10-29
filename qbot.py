@@ -1,5 +1,4 @@
 import random
-import sys
 
 def add(a, b):
     return a + b
@@ -10,10 +9,8 @@ def sub(a, b):
 ops = [add, sub]
 ops_str = '+-'
 
-lim = int(sys.argv[1])
-
 while True:
-    c = random.randint(1, lim)
+    c = random.randint(1, len(ops_str))
     if c == 1:
         a = random.randint(1, 9)
         b = random.randint(1, 9)
