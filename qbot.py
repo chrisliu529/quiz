@@ -6,8 +6,11 @@ def add(a, b):
 def sub(a, b):
     return a - b
 
-ops = [add, sub]
-ops_str = '+-'
+def mul(a, b):
+    return a * b
+
+ops = [add, sub, mul]
+ops_str = '+-x'
 
 while True:
     c = random.randint(1, len(ops_str))
@@ -17,9 +20,13 @@ while True:
         r = ops[c-1](a, b)
         if r <= 5:
             continue
-    else:
+    elif c == 2:
         a = random.randint(1, 19)
         b = random.randint(1, 19)
+        r = ops[c-1](a, b)
+    else:
+        a = random.randint(1, 9)
+        b = random.randint(1, 9)
         r = ops[c-1](a, b)
 
     print '\n%s %s %s' % (a, ops_str[c-1], b)
