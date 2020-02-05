@@ -59,7 +59,7 @@ def process(text):
 
 class PoemsSpider(Spider):
     name = "poems"
-    start_urls = ['https://www.shigeku.org/xlib/lingshidao/gushi/tangshi/qts_0424.htm']
+    start_urls = [f'https://www.shigeku.org/xlib/lingshidao/gushi/tangshi/qts_0{i}.htm' for i in range(424, 463)]
 
     def parse(self, response):
         div_text = ''.join(response.css('body > div:nth-child(4)::text').getall())
