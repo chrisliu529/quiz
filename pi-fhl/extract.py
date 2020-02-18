@@ -1,10 +1,11 @@
-import os
+import pymongo
 import re
-import scrapy
-from scrapy.crawler import CrawlerProcess
-from scrapy.utils.project import get_project_settings
-from scrapy import Spider
-from items import PoemItem
+import time
+
+
+client = pymongo.MongoClient('mongodb://root:example@mongo')
+db = client['local']
+pattern_title = re.compile(r'^卷[0-9]+_[0-9]+')
 
 
 def flat_list(l):
@@ -13,11 +14,17 @@ def flat_list(l):
 
 def process(text):
     def is_title(s):
-        return '卷' in s and '_' in s or s == 'end'
+        return bool(pattern_title.match(s))
+
+    def has_letter(s):
+        for c in s:
+            if c.islower() or c.isupper():
+                return True
+        return False
 
     def split_sentences(ss):
         ss1 = [s.replace('.', '。').split('。') for s in ss]
-        return [s for s in flat_list(ss1) if s != '']
+        return [s for s in flat_list(ss1) if s != '' and not has_letter(s)]
 
     lines = text.split('\n')
     lines2 = [x.strip() for x in lines]
@@ -57,28 +64,20 @@ def process(text):
     return ps
 
 
-class PoemsSpider(Spider):
-    name = "poems"
-    start_urls = [f'https://www.shigeku.org/xlib/lingshidao/gushi/tangshi/qts_0{i}.htm' for i in range(424, 463)]
-
-    def parse(self, response):
-        div_text = ''.join(response.css('body > div:nth-child(4)::text').getall())
-        poems = process(div_text)
-        for p in poems:
-            yield PoemItem(
-                tid = p['tid'],
-                title = p['title'],
-                sentences = p['sentences'],
-                author = '白居易'
-            )
-
-
 def main():
-    os.environ.setdefault('SCRAPY_SETTINGS_MODULE', 'settings')
-    process = CrawlerProcess(get_project_settings())
-    process.crawl(PoemsSpider)
-    process.start()
+    for doc in db['raw'].find():
+        poems = process(doc['data'])
+        for p in poems:
+            p['author'] = '白居易'
+            db['extract'].insert_one(p)
+
+
+def cms():
+    return int(round(time.time() * 1000))
 
 
 if __name__ == "__main__":
+    t0 = cms()
     main()
+    t = cms() - t0
+    print(f'cost: {t} ms')

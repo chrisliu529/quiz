@@ -21,10 +21,10 @@ class PoemPipeline:
         self.client.close()
 
     def process_item(self, item, spider):
-        pt = self.db['poems']
+        pt = self.db['raw']
         di = dict(item)
-        tid = di['tid']
-        existed = pt.count_documents({'tid': tid})
+        url = di['url']
+        existed = pt.count_documents({'url': url})
         if existed > 0:
             return item
 

@@ -1,4 +1,7 @@
 import random
+import time
+import sys
+
 import pymongo
 
 
@@ -9,19 +12,13 @@ ntab = '零一二三四五六七八九'
 
 client = pymongo.MongoClient('mongodb://root:example@mongo')
 db = client['local']
+outf = open(sys.argv[1], 'w')
 
 
 def prepare_materials():
-    def has_letter(s):
-        for c in s:
-            if c.islower() or c.isupper():
-                return True
-        return False
-
-    for doc in db['poems'].find():
-        ss = [s for s in doc['sentences'] if not s.endswith('，') and not has_letter(s)]
+    for doc in db['extract'].find():
         for n in ntab:
-            for s in ss:
+            for s in doc['sentences']:
                 if n in s:
                     materials.setdefault(n, []).append(f'{s};{doc["title"]}')
 
@@ -52,7 +49,7 @@ def mark_number(s, n):
     return s.replace(n, mark)
 
 def main():
-    print('''
+    outf.write('''
     <!DOCTYPE html>
 <html>
 <head>
@@ -68,17 +65,26 @@ def main():
         n = ntab[int(numbers[i])]
         s = get_sentence(n)
         if s is None:
-            return
+            print(f'broken on {n}')
+            break
         fields = s.split(';')
         rid = f'<span style="font-size:14px">#{i+1}</span>'
         title = f'<span style="color:gray;font-size:12px"><i>《{fields[1]}》</i></span>'
         marked = mark_number(fields[0], n)
-        print(f'{rid} {marked} {title} <br>')
-    print('''
+        outf.write(f'{rid} {marked} {title} <br>')
+    outf.write('''
     </body>
 </html>
     ''')
+    outf.close()
+
+
+def cms():
+    return int(round(time.time() * 1000))
 
 
 if __name__ == "__main__":
+    t0 = cms()
     main()
+    t = cms() - t0
+    print(f'cost: {t} ms')
