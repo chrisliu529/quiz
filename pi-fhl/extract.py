@@ -43,7 +43,7 @@ def process(text):
 
     lines = text.split('\n')
     lines2 = [x.strip() for x in lines]
-    lines3 = [x for x in lines2 if x != '']
+    lines3 = [x for x in lines2 if x != '' or '「' not in x]
     lines3.append('end')
 
     pattern = re.compile(r'^卷(.*)「(.*)」(.*)')

@@ -40,8 +40,8 @@ def get_sentence(n):
 
 
 def read_pi():
-    with open('pi1000.txt') as f:
-        return ''.join(f.read().split('\n'))
+    with open('pi.txt') as f:
+        return ''.join(f.read().split('\n')).replace('\\', '')
 
 
 def mark_number(s, n):
@@ -54,7 +54,7 @@ def main():
 <html>
 <head>
 <meta charset="UTF-8">
-<title>白居易版圆周率飞花令</title>
+<title>全唐诗版圆周率飞花令</title>
 </head>
 
 <body>

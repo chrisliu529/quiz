@@ -9,7 +9,7 @@ from items import RawItem
 
 class PoemsSpider(Spider):
     name = "poems"
-    start_urls = [f'https://www.shigeku.org/xlib/lingshidao/gushi/tangshi/qts_0{i}.htm' for i in range(424, 463)]
+    start_urls = [f'https://www.shigeku.org/xlib/lingshidao/gushi/tangshi/qts_{i:04d}.htm' for i in range(1, 889)]
 
     def parse(self, response):
         div_text = ''.join(response.css('body > div:nth-child(4)::text').getall())
