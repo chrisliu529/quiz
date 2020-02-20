@@ -6,16 +6,31 @@ import time
 client = pymongo.MongoClient('mongodb://root:example@mongo')
 db = client['local']
 pattern_title = re.compile(r'^卷[0-9]+_[0-9]+')
+pattern_mixed = re.compile(r'^(.*)(卷[0-9]+_[0-9]+.*)')
 
 
 def flat_list(l):
     return [item for sublist in l for item in sublist]
 
 
-def process(text):
-    def is_title(s):
-        return bool(pattern_title.match(s))
+def is_title(s):
+    return bool(pattern_title.match(s))
 
+
+def preprocess(text):
+    lines = text.split('\n')
+    res = []
+    for line in lines:
+        if '卷' in line and '_' in line and not is_title(line):
+            t = pattern_mixed.search(line)
+            res.append(t.group(1).strip())
+            res.append(t.group(2).strip())
+        else:
+            res.append(line)
+    return '\n'.join(res)
+
+
+def process(text):
     def has_letter(s):
         for c in s:
             if c.islower() or c.isupper():
@@ -31,7 +46,7 @@ def process(text):
     lines3 = [x for x in lines2 if x != '']
     lines3.append('end')
 
-    pattern = re.compile(r'^卷(.*)「(.*)」')
+    pattern = re.compile(r'^卷(.*)「(.*)」(.*)')
     st = 'find-title'
     ps = []
     last = None
@@ -50,7 +65,8 @@ def process(text):
                 t = pattern.search(line)
                 last = {
                     'tid': t.group(1).strip(),
-                    'title': t.group(2).strip()
+                    'title': t.group(2).strip(),
+                    'author': t.group(3).strip()
                 }
                 st = 'find-sentenses'
                 ss = []
@@ -66,9 +82,8 @@ def process(text):
 
 def main():
     for doc in db['raw'].find():
-        poems = process(doc['data'])
+        poems = process(preprocess(doc['data']))
         for p in poems:
-            p['author'] = '白居易'
             db['extract'].insert_one(p)
 
 

@@ -20,7 +20,7 @@ def prepare_materials():
         for n in ntab:
             for s in doc['sentences']:
                 if n in s:
-                    materials.setdefault(n, []).append(f'{s};{doc["title"]}')
+                    materials.setdefault(n, []).append(f'{s};{doc["title"]};{doc["author"]}')
 
     for k in materials:
         random.shuffle(materials[k])
@@ -69,7 +69,7 @@ def main():
             break
         fields = s.split(';')
         rid = f'<span style="font-size:14px">#{i+1}</span>'
-        title = f'<span style="color:gray;font-size:12px"><i>《{fields[1]}》</i></span>'
+        title = f'<span style="color:gray;font-size:12px"><i>《{fields[1]}》 {fields[2]}</i></span>'
         marked = mark_number(fields[0], n)
         outf.write(f'{rid} {marked} {title} <br>')
     outf.write('''
