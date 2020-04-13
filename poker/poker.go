@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"os"
 )
 
 type Results struct {
@@ -29,6 +30,11 @@ const (
 
 	N_CARDS = 5
 	OK      = 0
+)
+
+var (
+	LeonRecords *os.File
+	JudyRecords *os.File
 )
 
 type Context struct {
@@ -343,8 +349,12 @@ func analyzeRecords(filename string) *Results {
 		switch r {
 		case FIRST_WIN:
 			res.first_win++
+			_, err := fmt.Fprintf(LeonRecords, "%s\n", lines[i])
+			check(err)
 		case SECOND_WIN:
 			res.second_win++
+			_, err := fmt.Fprintf(JudyRecords, "%s\n", lines[i])
+			check(err)
 		}
 	}
 	return res
@@ -357,7 +367,20 @@ func (r *Results) String() string {
 		r.first_win, r.second_win)
 }
 
+func initFiles() (*os.File, *os.File) {
+	f1, err := os.Create("leon.txt")
+	check(err)
+	f2, err := os.Create("judy.txt")
+	check(err)
+	return f1, f2
+}
+
 func main() {
+	LeonRecords, JudyRecords = initFiles()
 	res := analyzeRecords("LJ-poker.txt")
+	err := LeonRecords.Close()
+	check(err)
+	err = JudyRecords.Close()
+	check(err)
 	fmt.Println(res)
 }
